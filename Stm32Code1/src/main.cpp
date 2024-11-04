@@ -1,63 +1,57 @@
-#include <SPI.h>
-#include <Adafruit_Sensor.h>
-#include <LoRa.h>
-#include "DHT.h"
+#include <LoraModule.h>
+#include "nodeId.h"
+#include "dht11.h"
+#include "MQ135Module.h"
+#include "MQ136Module.h"
 
-// Định nghĩa chân kết nối LoRa
-#define SPI1_NSS  PA4  // Chân Chip Select
-#define SPI1_SCK  PA5   // Chân SCK
-#define SPI1_MISO PA6   // Chân MISO
-#define SPI1_MOSI PA7   // Chân MOSI
-#define SPI1_RESET PB0   // Chân Reset
+#define TIME_CALLBACK 10 //Thoi gian giua 2 lan truyen goi tin (s)
+#define READ_NUM 5 //So lan doc cam bien de lay trung binh moi lan truyen goi tin
 
-
-// Định nghĩa chân analog cho cảm biến
-#define H2S_PIN PA2  // Chân analog cho cảm biến MQ-136
-#define NH3_PIN PA1  // Chân analog cho cảm biến MQ-135
-
-#define DHTPIN PA3
-#define DHTTYPE DHT11
-DHT dht(DHTPIN, DHTTYPE);
+float temp, hum, nh3, h2s;
+float humSum, tempSum, nh3Sum, h2sSum;
+float humAvg, tempAvg, nh3Avg, h2sAvg;
 
 void setup() {
-    dht.begin();
-    // Thiết lập các chân cho LoRa
-    pinMode(SPI1_NSS, OUTPUT);
-    pinMode(SPI1_RESET, OUTPUT);
-    digitalWrite(SPI1_RESET, HIGH); // Đặt chân reset ở mức cao
-
-
-    // Khởi tạo LoRa
-    LoRa.setPins(SPI1_NSS, SPI1_RESET, SPI1_SCK);
-    while (!LoRa.begin(433E6));
+    Serial.begin(115200);
+    //Doc id cua node
+    DipSwitch_Setup(); readAllSwitches();
+    DHT11_Setup();
+    LoraSetup();
+    MQ136_Setup();
+    MQ135_Setup();
 }
 
 void loop() {
-    // Đọc giá trị từ cảm biến H2S (MQ-136)
-    int h2s_value = analogRead(H2S_PIN);
+    humSum = 0, tempSum = 0, nh3Sum = 0, h2sSum = 0;
+    humAvg = 0, tempAvg = 0, nh3Avg = 0, h2sAvg = 0;
 
-    // Đọc giá trị từ cảm biến NH3 (MQ-135)
-    int nh3_value = analogRead(NH3_PIN);
+    //Bat nguon DHT11
+    turnOnDHT(true);  delay(100);
+    for(int i = 0; i < READ_NUM; i++){
+        //Doc gia tri cam bien
+        DHT11_Read(&temp, &hum); delay(5);
+        nh3 = readNH3(); delay(5);
+        h2s = readH2S(); delay(5);
+        humSum += hum; tempSum +=temp; nh3Sum += nh3; h2sSum +=h2s;
+        Serial.print("#"); Serial.print(i+1); 
+        Serial.print(" Temp:");  Serial.print(temp); 
+        Serial.print("C Hum:"); Serial.print(hum); 
+        Serial.print("% NH3:"); Serial.print(nh3);  Serial.print("%");  
+        Serial.print(" H2S:"); Serial.print(h2s);  Serial.println("%"); 
+        delay(2000);
+    }
+    humAvg  = humSum/READ_NUM;
+    tempAvg = tempSum/READ_NUM;
+    nh3Avg  = nh3Sum/READ_NUM;
+    h2sAvg  = h2sSum/READ_NUM;
+    Serial.println("Average Value of Sensor:");
+    Serial.print("Temp:");  Serial.print(tempAvg);  
+    Serial.print("C Hum:"); Serial.print(humAvg); 
+    Serial.print("%  NH3:"); Serial.print(nh3Avg);  Serial.print("%");  
+    Serial.print(" H2S:"); Serial.print(h2sAvg);  Serial.println("%"); 
+    sendSensorData(penCode, nodeId, tempAvg, humAvg, nh3Avg, h2sAvg);
 
-    int h = dht.readHumidity();
-  // Read temperature as Celsius (the default)
-    int t = dht.readTemperature();
+    turnOnDHT(false);
+    delay(TIME_CALLBACK*1000);
 
-    // Gửi dữ liệu qua LoRa
-        LoRa.beginPacket();
-        LoRa.print("H2S:");
-        LoRa.print(h2s_value);
-        LoRa.print("; ");
-        LoRa.print("NH3:");
-        LoRa.print(nh3_value);
-        LoRa.print("; ");
-        LoRa.print("Temp:");
-        LoRa.print(t);
-        LoRa.print("; ");
-        LoRa.print("Hum:");
-        LoRa.print(h);
-        LoRa.endPacket();
-
-    // Đợi một chút trước khi đọc lại
-    delay(2000);
 }
