@@ -14,6 +14,9 @@ void DHT11_Read(float *a, float *b) {
         *b = h;
     } else {
         Serial.println("Failed to read from DHT sensor!");
+        failDHT();
+        delay(300);
+        failDHT();
     }
 }   
 

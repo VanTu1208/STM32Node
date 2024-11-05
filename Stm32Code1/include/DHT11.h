@@ -3,11 +3,11 @@
 #include <Arduino.h>
 #include "DHT.h"
 #include <Adafruit_Sensor.h>
-
+#include "Buzz.h"
 #define DHTPIN PA3
 #define DHTTYPE DHT11
 
-#define PWR_DHT  PB3
+#define PWR_DHT  PB5
 
 extern DHT dht;
 

@@ -2,6 +2,8 @@
 
 void MQ135_Setup(void){
     pinMode(PIN_MQ135,INPUT);
+    pinMode(PIN_MQ135_POWER,OUTPUT);
+    digitalWrite(PIN_MQ135_POWER,HIGH);
 }
 
 float readNH3(void){

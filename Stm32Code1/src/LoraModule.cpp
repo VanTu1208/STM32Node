@@ -7,15 +7,17 @@ void LoraSetup(void){
     
     LoRa.setPins(SPI1_NSS, SPI1_RESET, SPI1_SCK);
     while (!LoRa.begin(433E6)) {
+        failLora();
         Serial.println("LoRa init failed. Check your connections.");
-        delay(1000);
+        
+        delay(5000);
     }
     Serial.println("LoRa init succeeded.");
     LoRa.sleep();
 }
 
 
-void sendSensorData(uint8_t penCode, uint8_t nodeId, float t, float h, float nh3, float h2s) {
+void sendSensorData(int penCode, int nodeId, float t, float h, float nh3, float h2s) {
     // CSMA: Kiểm tra kênh trước khi gửi
     int maxAttempts = 5;  // Số lần thử tối đa nếu kênh bận
     bool sent = false;
@@ -28,9 +30,9 @@ void sendSensorData(uint8_t penCode, uint8_t nodeId, float t, float h, float nh3
             // Kênh trống, tiến hành gửi dữ liệu
             LoRa.beginPacket();
             LoRa.print("penCode:");
-            LoRa.print(penCode, BIN);
+            LoRa.print(penCode, DEC);
             LoRa.print("; nodeId:");
-            LoRa.print(nodeId, BIN);
+            LoRa.print(nodeId, DEC);
             LoRa.print("; Temp:");
             LoRa.print(t);
             LoRa.print("; Hum:");

@@ -2,6 +2,8 @@
 
 void MQ136_Setup(void){
     pinMode(PIN_MQ136,INPUT);
+    pinMode(PIN_MQ136_POWER,OUTPUT);
+    digitalWrite(PIN_MQ136_POWER,HIGH);
 }
 
 float readH2S(void){

@@ -4,6 +4,7 @@
 #include <LoRa.h>
 #include <SPI.h>
 #include "nodeId.h"
+#include "Buzz.h"
 // Định nghĩa chân kết nối LoRa
 #define SPI1_NSS  PA4
 #define SPI1_SCK  PA5
@@ -13,5 +14,5 @@
 
 
 void LoraSetup(void);
-void sendSensorData(uint8_t penCode, uint8_t nodeId, float t, float h, float nh3, float h2s);
+void sendSensorData(int penCode, int nodeId, float t, float h, float nh3, float h2s);
 #endif 

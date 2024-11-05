@@ -3,7 +3,7 @@
 #include "dht11.h"
 #include "MQ135Module.h"
 #include "MQ136Module.h"
-
+#include "Buzz.h"
 #define TIME_CALLBACK 10 //Thoi gian giua 2 lan truyen goi tin (s)
 #define READ_NUM 5 //So lan doc cam bien de lay trung binh moi lan truyen goi tin
 
@@ -19,6 +19,7 @@ void setup() {
     LoraSetup();
     MQ136_Setup();
     MQ135_Setup();
+
 }
 
 void loop() {
